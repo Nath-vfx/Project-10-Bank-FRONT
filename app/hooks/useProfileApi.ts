@@ -10,7 +10,7 @@ export interface UserProfile {
 export function useProfileApi() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const apiUrl = process.env.VITE_API_URL || '';
+  const apiUrl = import.meta.env.VITE_API_URL || '';
 
   if (!apiUrl) {
     console.warn("L'URL de l'API n'est pas définie dans les variables d'environnement");
