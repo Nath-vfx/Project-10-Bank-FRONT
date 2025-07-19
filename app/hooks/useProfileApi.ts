@@ -1,81 +1,152 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import type { UserProfile } from '../store/slices/userProfileSlice';
+import {
+  clearProfile,
+  fetchProfileFailure,
+  fetchProfileStart,
+  fetchProfileSuccess,
+  updateProfileFailure,
+  updateProfileStart,
+  updateProfileSuccess,
+} from '../store/slices/userProfileSlice';
+import type { AppDispatch, RootState } from '../store/store';
 
-export interface UserProfile {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
+interface ApiResponse<T> {
+  status: number;
+  message: string;
+  body: T;
 }
 
 export function useProfileApi() {
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: profile,
+    loading: isLoading,
+    error,
+  } = useSelector((state: RootState) => state.userProfile);
+
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
   if (!apiUrl) {
-    console.warn("L'URL de l'API n'est pas définie dans les variables d'environnement");
+    // eslint-disable-next-line no-console
+    console.warn(
+      "L'URL de l'API n'est pas définie dans les variables d'environnement"
+    );
   }
 
-  const makeRequest = async <T>(
-    endpoint: string,
-    method: 'POST' | 'PUT',
-    token: string,
-    body?: any
-  ): Promise<{ data: T | null; error: string | null }> => {
-    setIsLoading(true);
-    setError(null);
+  const makeRequest = useCallback(
+    async <T>(
+      endpoint: string,
+      method: 'POST' | 'PUT',
+      token: string,
+      body?: Record<string, unknown>
+    ): Promise<{ data: T | null; error: string | null }> => {
+      try {
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        };
 
-    try {
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-        'Authorization': token.startsWith('Bearer ') ? token : `Bearer ${token}`
-      };
+        const response = await fetch(`${apiUrl}${endpoint}`, {
+          method,
+          headers,
+          body: body ? JSON.stringify(body) : undefined,
+        });
 
-      const response = await fetch(`${apiUrl}${endpoint}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-      });
+        const data = (await response.json()) as ApiResponse<T>;
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.message || 'Une erreur est survenue lors de la récupération du profil';
-        setError(errorMessage);
+        if (!response.ok) {
+          return {
+            data: null,
+            error: data.message || 'Une erreur est survenue',
+          };
+        }
+
+        return { data: data.body, error: null };
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Une erreur inconnue est survenue';
         return { data: null, error: errorMessage };
       }
+    },
+    [apiUrl]
+  );
 
-      // Pour les réponses sans contenu (comme 204 No Content)
-      if (response.status === 204) {
-        return { data: null, error: null };
+  const fetchProfile = useCallback(
+    async (token: string): Promise<void> => {
+      try {
+        dispatch(fetchProfileStart());
+        const { data, error } = await makeRequest<UserProfile>(
+          '/user/profile',
+          'POST',
+          token
+        );
+
+        if (error || !data) {
+          throw new Error(
+            error || 'Impossible de récupérer le profil utilisateur'
+          );
+        }
+
+        dispatch(fetchProfileSuccess(data));
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Erreur inconnue lors de la récupération du profil';
+        dispatch(fetchProfileFailure(errorMessage));
       }
+    },
+    [dispatch, makeRequest]
+  );
 
-      const data = await response.json();
-      return { data, error: null };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur inconnue est survenue';
-      setError(errorMessage);
-      console.error('API Error:', err);
-      return { data: null, error: errorMessage };
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const updateProfile = useCallback(
+    async (
+      token: string,
+      userData: { firstName: string; lastName: string }
+    ): Promise<boolean> => {
+      try {
+        dispatch(updateProfileStart());
+        const { data, error } = await makeRequest<UserProfile>(
+          '/user/profile',
+          'PUT',
+          token,
+          userData
+        );
 
-  const getProfile = async (token: string) => {
-    return makeRequest<UserProfile>('/user/profile', 'POST', token, {});
-  };
+        if (error || !data) {
+          throw new Error(
+            error || 'Impossible de mettre à jour le profil utilisateur'
+          );
+        }
 
-  const updateProfile = async (profileData: Partial<UserProfile>, token: string) => {
-    return makeRequest<UserProfile>('/user/profile', 'PUT', token, profileData);
-  };
+        dispatch(updateProfileSuccess(data));
+        return true;
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Erreur inconnue lors de la mise à jour du profil';
+        dispatch(updateProfileFailure(errorMessage));
+        return false;
+      }
+    },
+    [dispatch, makeRequest]
+  );
+
+  const resetProfile = useCallback(() => {
+    dispatch(clearProfile());
+  }, [dispatch]);
 
   return {
-    // State
-    error,
+    profile,
     isLoading,
-    
-    // Methods
-    getProfile,
+    error,
+    fetchProfile,
     updateProfile,
+    resetProfile,
   };
 }

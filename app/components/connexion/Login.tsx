@@ -1,45 +1,50 @@
 import { useState } from 'react';
-import { useAuthApi } from '~/hooks/useAuthApi';
+import { useNavigate } from 'react-router';
+import { useAuth } from '~/hooks/useAuth';
 
 export default function Login() {
-  const { login } = useAuthApi();
+  const { login, error, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Tentative de connexion avec:', { email });
-    
-    const response = await login({ email, password });
-    console.log('Réponse API:', response);
+
+    const result = await login(email, password);
+    if (result.success) {
+      // Rediriger vers la page de profil après connexion réussie
+      navigate('/profile');
+    }
   };
 
   return (
     <main className="main bg-dark">
       <section className="sign-in-content">
-        <i className="fa fa-user-circle sign-in-icon"></i>
+        <i className="fa fa-user-circle sign-in-icon" />
         <h1>Sign In</h1>
         <form onSubmit={handleSubmit}>
           <div className="input-wrapper">
             <label htmlFor="email">Email</label>
             <input
-              type="email"
-              value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              type="email"
+              value={email}
             />
           </div>
           <div className="input-wrapper">
             <label htmlFor="password">Password</label>
             <input
-              type="password"
-              value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              type="password"
+              value={password}
             />
           </div>
-          <button type="submit" className="sign-in-button">
-            Sign In
+          {error && <div className="error-message">{error}</div>}
+          <button className="sign-in-button" disabled={loading} type="submit">
+            {loading ? 'Connexion en cours...' : 'Sign In'}
           </button>
         </form>
       </section>

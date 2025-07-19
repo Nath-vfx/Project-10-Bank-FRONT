@@ -4,4 +4,4 @@ export default function Footer() {
       <p className="footer-text">© 2025 Argent Bank. All rights reserved.</p>
     </footer>
   );
-}   
+}

@@ -18,7 +18,9 @@ export function useAuthApi() {
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
   if (!apiUrl) {
-    console.warn("L'URL de l'API n'est pas définie dans les variables d'environnement");
+    console.warn(
+      "L'URL de l'API n'est pas définie dans les variables d'environnement"
+    );
   }
 
   const makeRequest = async <T>(
@@ -48,7 +50,8 @@ export function useAuthApi() {
       const data = await response.json();
       return { data, error: null };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur inconnue est survenue';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Une erreur inconnue est survenue';
       setError(errorMessage);
       console.error('API Error:', err);
       return { data: null, error: errorMessage };
@@ -57,8 +60,8 @@ export function useAuthApi() {
     }
   };
 
-  const login = async (credentials: LoginCredentials) => {
-    return makeRequest<{ token: string }>('/user/login', 'POST', credentials);
+  const login = async <T = any>(credentials: LoginCredentials) => {
+    return makeRequest<T>('/user/login', 'POST', credentials);
   };
 
   const signup = async (userData: SignupData) => {
@@ -69,7 +72,7 @@ export function useAuthApi() {
     // State
     error,
     isLoading,
-    
+
     // Methods
     login,
     signup,
