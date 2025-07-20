@@ -1,18 +1,19 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import { useProfileApi } from '~/hooks/useProfileApi';
-import type { Route } from './+types/home';
 import type { RootState } from '~/store/store';
 
-export function meta({}: Route.MetaArgs) {
+export function meta() {
   return [{ title: 'Profil' }, { name: 'description', content: 'Profil' }];
 }
 
 export default function Profile() {
   const { profile, updateProfile } = useProfileApi();
   const navigate = useNavigate();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated
+  );
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -21,7 +22,6 @@ export default function Profile() {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
-    // Le useEffect va gérer la redirection
     return null;
   }
 
@@ -34,7 +34,6 @@ export default function Profile() {
             e.preventDefault();
             const token = localStorage.getItem('token');
             if (!token) {
-              // In a real app, you might want to redirect to login or show an error message
               alert('Please log in to update your profile');
               return;
             }
