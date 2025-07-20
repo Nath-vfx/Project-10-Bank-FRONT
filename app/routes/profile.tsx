@@ -64,7 +64,9 @@ export default function Profile() {
               type="text"
             />
           </div>
-          <button type="submit">Update</button>
+          <button className="edit-button" type="submit">
+            Update
+          </button>
         </form>
       </section>
     </main>
