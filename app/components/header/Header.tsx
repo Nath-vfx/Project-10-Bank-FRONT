@@ -37,7 +37,14 @@ export default function Header() {
         <div>
           {isAuthenticated && userProfile ? (
             <div className="main-nav-item">
-              <Link to="/profile">
+              <Link className="nav-button" to="/profile">
+                <picture>
+                  <img
+                    alt="User Icon"
+                    className="nav-button-image"
+                    src="/img/user-regular.svg"
+                  />
+                </picture>
                 {userProfile?.firstName} {userProfile?.lastName}
               </Link>
               <button

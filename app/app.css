@@ -78,14 +78,23 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1rem;
+  text-decoration: none;
 }
 
-.nav-button img {
-  width: 1.5rem;
+.nav-button-image {
+  background-color: #eaeaea;
+  padding: 4px;
+  border-radius: 50%;
+  object-fit: contain;
+  width: 100%;
 }
 
 .nav-button:hover {
   text-decoration: underline;
+}
+
+.nav-button picture {
+  width: 2rem;
 }
 
 .main-nav-logo {
