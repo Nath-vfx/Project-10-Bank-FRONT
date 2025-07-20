@@ -66,20 +66,26 @@ body {
   justify-content: center;
 }
 
-.main-nav-item:hover {
-  text-decoration: underline;
-}
-
 .nav-button {
-  border-color: #00bc77;
-  background-color: #00bc77;
-  color: #fff;
+  border: none;
+  color: #000;
+  background: none;
   font-weight: bold;
   padding: 10px;
+  cursor: pointer;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.nav-button img {
+  width: 1.5rem;
 }
 
 .nav-button:hover {
-  background-color: #02d084;
+  text-decoration: underline;
 }
 
 .main-nav-logo {

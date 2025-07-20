@@ -46,6 +46,12 @@ export default function Header() {
                 type="button"
               >
                 Sign Out
+                <picture>
+                  <img
+                    alt="Arrow right from bracket solid"
+                    src="/img/arrow-right-from-bracket-solid.svg"
+                  />
+                </picture>
               </button>
             </div>
           ) : (
