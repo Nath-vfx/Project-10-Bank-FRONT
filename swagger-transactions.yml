@@ -1,0 +1,193 @@
+openapi: 3.0.0
+info:
+  title: Bank Transaction API
+  description: API for managing bank transactions
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@bankapi.com
+
+servers:
+  - url: /api/v1
+    description: API server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Transaction:
+      type: object
+      required:
+        - id
+        - date
+        - description
+        - amount
+        - balance
+        - type
+        - category
+      properties:
+        id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date-time
+        description:
+          type: string
+        amount:
+          type: number
+          format: float
+        balance:
+          type: number
+          format: float
+        type:
+          type: string
+          enum: [purchase, expense]
+        category:
+          type: string
+          enum: [groceries, utilities, salary, transfer, shopping, entertainment, healthcare, transportation, other]
+        notes:
+          type: string
+
+    TransactionUpdate:
+      type: object
+      required:
+        - category
+      properties:
+        category:
+          type: string
+          enum: [groceries, utilities, salary, transfer, shopping, entertainment, healthcare, transportation, other]
+        notes:
+          type: string
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized - Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Forbidden - Not authorized to access this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Transaction not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+paths:
+  /user/transactions:
+    post:
+      tags:
+        - Transactions
+      summary: Get all transactions for the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  properties:
+                    startDate:
+                      type: string
+                      format: date
+                    endDate:
+                      type: string
+                      format: date
+                    type:
+                      type: string
+                      enum: [purchase, expense]
+                    category:
+                      type: string
+                      enum: [groceries, utilities, salary, transfer, shopping, entertainment, healthcare, transportation, other]
+      responses:
+        '200':
+          description: A list of transactions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /user/transaction/{transactionId}:
+    put:
+      tags:
+        - Transactions
+      summary: Update a specific transaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: transactionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionUpdate'
+      responses:
+        '200':
+          description: Transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
